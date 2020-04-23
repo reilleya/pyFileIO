@@ -1,3 +1,5 @@
+import yaml
+
 from .util import isSemVerTuple, futureVersion
 
 appVersion = None
@@ -54,5 +56,44 @@ class FileIO():
                                                                                 err))
             currentVersion = migrations[currentVersion]['to']
         return data
+
+    def save(self, fileType, data, path):
+        if fileType not in self.fileTypes:
+            raise ValueError('Unknown file type: {}'.format(fileType))
+
+        output = {
+            'version': self.getAppVersion(),
+            'type': fileType,
+            'data': data
+        }
+
+        with open(path, 'w') as saveLocation:
+            yaml.dump(output, saveLocation)
+
+    def load(self, fileType, path):
+        if fileType not in self.fileTypes:
+            raise ValueError('Unknown file type: {}'.format(fileType))
+
+        with open(path, 'r') as readLocation:
+            fileData = yaml.full_load(readLocation)
+
+            if 'data' not in fileData or 'type' not in fileData or 'version' not in fileData:
+                raise ValueError('File did not contain the required fields')
+
+            if fileData['type'] != fileType:
+                raise TypeError('Loaded data type did not match expected type.')
+
+            if fileData['version'] == self.getAppVersion():
+                return fileData['data'] # If the data is from the current version it doesn't need migration
+
+            # If the data is from a future version, it can't be loaded
+            if futureVersion(fileData['version'], self.getAppVersion()):
+                new = '.'.join(str(num) for num in fileData['version'])
+                old = '.'.join(str(num) for num in appVersion)
+                raise ValueError("Data is from a future version (" + new + " vs " + old + ") and can't be loaded.")
+
+            # Otherwise it is from a past version and will be migrated
+            return self.migrateData(fileType, fileData['version'], self.getAppVersion(), fileData['data'])
+
 
 fileIO = FileIO()
