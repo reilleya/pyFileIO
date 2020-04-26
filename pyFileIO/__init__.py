@@ -111,7 +111,7 @@ class FileIO():
             return ''
         path = appdirs.user_data_dir(self.getAppName(), self.getAppName())
         if not os.path.isdir(path): # Create directory if it doesn't exist
-            os.mkdir(path)
+            os.makedirs(path)
         return '{}/'.format(path)
 
     def saveToDataDirectory(self, fileType, data, fileName):
