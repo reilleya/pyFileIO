@@ -114,12 +114,12 @@ class FileIO():
             os.mkdir(path)
         return '{}/'.format(path)
 
-    def saveToConfigDirectory(self, fileType, data, fileName):
+    def saveToDataDirectory(self, fileType, data, fileName):
         if self._appName is None:
             raise ValueError('Application name not set')
         self.save(fileType, data, '{}{}'.format(self.getDataDirectory(), fileName))
 
-    def loadFromConfigDirectory(self, fileType, fileName):
+    def loadFromDataDirectory(self, fileType, fileName):
         if self._appName is None:
             raise ValueError('Application name not set')
         return self.load(fileType, '{}{}'.format(self.getDataDirectory(), fileName))
